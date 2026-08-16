@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>App Trading Spot</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+    body { background-color: #12161C; color: #EAECF0; padding: 12px; }
+    h2 { color: #F0B90B; margin: 14px 0 8px 0; font-size: 1.05rem; text-align: center; border-bottom: 1px solid #2B313A; padding-bottom: 4px; }
+    .card { background-color: #1E2329; border-radius: 8px; padding: 12px; margin-bottom: 12px; border: 1px solid #2B313A; }
+    label { font-size: 0.75rem; color: #848E9C; display: block; margin-top: 6px; }
+    input, select { width: 100%; padding: 8px; margin-top: 2px; background-color: #2B313A; border: 1px solid #474D57; border-radius: 4px; color: #fff; font-size: 0.9rem; }
+    .btn { width: 100%; background-color: #F0B90B; color: #000; font-weight: bold; border: none; padding: 10px; border-radius: 4px; font-size: 0.9rem; margin-top: 10px; cursor: pointer; }
+    .btn-exp { background-color: #0ECB81; color: #fff; margin-top: 10px; }
+    .row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.85rem; }
+    .val { font-weight: bold; }
+    .green { color: #0ECB81; }
+    .red { color: #F6465D; }
+    .grid-2 { display: flex; gap: 8px; }
+    .grid-2 > div { flex: 1; }
+    .table-container { overflow-x: auto; margin-top: 8px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.75rem; text-align: left; }
+    th { background-color: #2B313A; color: #F0B90B; padding: 6px; border: 1px solid #474D57; white-space: nowrap; }
+    td { padding: 6px; border: 1px solid #2B313A; white-space: nowrap; }
+    .btn-del { background: #F6465D; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <h2>1. Simulación</h2>
+  <div class="card">
+    <div class="grid-2">
+      <div><label>Inversión ($)</label><input type="number" id="simInv" value="50" step="any" oninput="simular()"></div>
+      <div><label>Precio Compra Est.</label><input type="number" id="simBuy" value="60000" step="any" oninput="simular()"></div>
+    </div>
+    <div class="grid-2">
+      <div><label>Precio Venta Est.</label><input type="number" id="simSell" value="62000" step="any" oninput="simular()"></div>
+      <div><label>Breakeven Mínimo</label><div id="simBk" style="padding:8px; font-weight:bold; color:#F0B90B;">$0.00</div></div>
+    </div>
+    <hr style="border-color: #2B313A; margin: 8px 0;">
+    <div class="row"><span>Ganancia:</span><span id="simProfit" class="val">-</span></div>
+    <div class="row"><span>ROI:</span><span id="simRoi" class="val">-</span></div>
+  </div>
+
+  <h2>2. Registro Real</h2>
+  <div class="card">
+    <div class="grid-2">
+      <div><label>Fecha</label><input type="date" id="realDate"></div>
+      <div><label>Par / Cripto</label><input type="text" id="realPair" placeholder="Ej: BTC/USDT"></div>
+    </div>
+    <div class="grid-2">
+      <div><label>Monto Invertido ($)</label><input type="number" id="realInv" step="any"></div>
+      <div><label>P. Compra Real</label><input type="number" id="realBuy" step="any"></div>
+    </div>
+    <div class="grid-2">
+      <div><label>P. Venta Real</label><input type="number" id="realSell" step="any"></div>
+      <div><label>Comisión ($)</label><input type="number" id="realFee" step="any" value="0.00"></div>
+    </div>
+    <button class="btn" onclick="guardarOperacionReal()">Registrar en Bitácora</button>
+  </div>
+
+  <h2>3. Bitácora</h2>
+  <div class="card" style="padding: 4px;">
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr><th>Fecha</th><th>Par</th><th>Inversión</th><th>G/P</th><th>Acción</th></tr>
+        </thead>
+        <tbody id="historyTable"></tbody>
+      </table>
+    </div>
+    <button class="btn btn-exp" onclick="exportToCSV()">Exportar a Excel (CSV)</button>
+  </div>
+
+<script>
+  document.getElementById('realDate').valueAsDate = new Date();
+
+  function simular() {
+    const inv = parseFloat(document.getElementById('simInv').value) || 0;
+    const buy = parseFloat(document.getElementById('simBuy').value) || 0;
+    const sell = parseFloat(document.getElementById('simSell').value) || 0;
+    if (inv > 0 && buy > 0) {
+      const netCrypto = (inv / buy) * (1 - 0.001);
+      const bk = buy / ((1 - 0.001) * (1 - 0.001));
+      const netSell = (netCrypto * sell) * (1 - 0.001);
+      const p = netSell - inv;
+      const r = (p / inv) * 100;
+      document.getElementById('simBk').innerText = '$' + bk.toFixed(4);
+      document.getElementById('simProfit').innerText = '$' + p.toFixed(2);
+      document.getElementById('simProfit').className = 'val ' + (p >= 0 ? 'green' : 'red');
+      document.getElementById('simRoi').innerText = r.toFixed(2) + '%';
+    }
+  }
+
+  function guardarOperacionReal() {
+    const trades = JSON.parse(localStorage.getItem('real_trades_db') || '[]');
+    trades.unshift({
+      id: Date.now(),
+      date: document.getElementById('realDate').value,
+      pair: document.getElementById('realPair').value || '-',
+      inv: document.getElementById('realInv').value || 0,
+      buy: document.getElementById('realBuy').value || 0,
+      sell: document.getElementById('realSell').value || 0,
+      fee: document.getElementById('realFee').value || 0,
+      profit: (( (parseFloat(document.getElementById('realInv').value)/parseFloat(document.getElementById('realBuy').value) * (1 - 0.001) * parseFloat(document.getElementById('realSell').value) * (1 - 0.001)) - parseFloat(document.getElementById('realInv').value) ) - parseFloat(document.getElementById('realFee').value)).toFixed(2)
+    });
+    localStorage.setItem('real_trades_db', JSON.stringify(trades));
+    renderHistory();
+  }
+
+  function deleteTrade(id) {
+    let trades = JSON.parse(localStorage.getItem('real_trades_db') || '[]');
+    trades = trades.filter(t => t.id !== id);
+    localStorage.setItem('real_trades_db', JSON.stringify(trades));
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const trades = JSON.parse(localStorage.getItem('real_trades_db') || '[]');
+    const tbody = document.getElementById('historyTable');
+    tbody.innerHTML = trades.map(t => `
+      <tr>
+        <td>${t.date}</td><td>${t.pair}</td><td>$${t.inv}</td>
+        <td class="${t.profit >= 0 ? 'green' : 'red'}">$${t.profit}</td>
+        <td><button class="btn-del" onclick="deleteTrade(${t.id})">X</button></td>
+      </tr>
+    `).join('');
+  }
+
+  function exportToCSV() {
+    const trades = JSON.parse(localStorage.getItem('real_trades_db') || '[]');
+    if (trades.length === 0) { alert('No hay datos'); return; }
+    let csv = "Fecha,Par,Inversión,Compra,Venta,Comisión,Ganancia\n";
+    trades.forEach(t => {
+      csv += `${t.date},${t.pair},${t.inv},${t.buy},${t.sell},${t.fee},${t.profit}\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'bitacora_trading.csv';
+    a.click();
+  }
+
+  simular(); renderHistory();
+</script>
+</body>
+</html>
