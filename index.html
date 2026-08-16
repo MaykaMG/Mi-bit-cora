@@ -1,114 +1,146 @@
-
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bitácora Trading Pro</title>
+  <title>Bitácora de Trading</title>
+  <!-- Script para exportar a Excel -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
-    body { background-color: #12161C; color: #EAECEF; font-family: sans-serif; padding: 10px; }
-    h2 { color: #F0B90B; font-size: 1rem; text-align: center; margin: 15px 0 10px 0; border-bottom: 1px solid #2B313A; padding-bottom: 5px; }
-    .card { background-color: #1E2329; border-radius: 8px; padding: 12px; margin-bottom: 12px; border: 1px solid #2B313A; }
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-    label { font-size: 0.7rem; color: #848E9C; display: block; margin-bottom: 2px; }
-    input { width: 100%; padding: 8px; background-color: #2B313A; border: 1px solid #474D57; border-radius: 4px; color: #fff; font-size: 0.9rem; }
-    .btn-save { width: 100%; background-color: #F0B90B; color: #000; font-weight: bold; padding: 12px; border: none; border-radius: 4px; margin-top: 10px; cursor: pointer; }
-    .table-cont { overflow-x: auto; margin-top: 10px; font-size: 0.7rem; }
-    table { width: 100%; border-collapse: collapse; }
-    th { color: #F0B90B; background-color: #2B313A; padding: 6px; }
-    td { padding: 6px; border: 1px solid #2B313A; color: #fff; }
+    body { background-color: #12161C; color: #EAECEF; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 15px; margin: 0; }
+    h2 { color: #F0B90B; font-size: 1.1rem; text-align: center; margin: 20px 0 10px 0; font-weight: bold; }
+    .card { background-color: #1E2329; border-radius: 8px; padding: 15px; margin-bottom: 15px; border: 1px solid #2B313A; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    label { font-size: 0.75rem; color: #848E9C; display: block; margin-bottom: 4px; }
+    input, select { width: 100%; padding: 10px; background-color: #2B313A; border: 1px solid #474D57; border-radius: 4px; color: #FFF; font-size: 0.9rem; box-sizing: border-box; }
+    .val-row { display: flex; justify-content: space-between; margin-top: 5px; font-size: 0.9rem; }
+    .val { font-weight: bold; }
     .green { color: #0ECB81; } .red { color: #F6465D; }
+    .btn-submit { width: 100%; background-color: #F0B90B; color: #000; font-weight: bold; padding: 12px; border: none; border-radius: 4px; margin-top: 10px; font-size: 1rem; cursor: pointer; }
+    .btn-excel { width: 100%; background-color: #0ECB81; color: #000; font-weight: bold; padding: 10px; border: none; border-radius: 4px; margin-top: 10px; font-size: 0.9rem; cursor: pointer; }
+    .table-cont { overflow-x: auto; margin-top: 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.75rem; white-space: nowrap; }
+    th { color: #F0B90B; background-color: #2B313A; padding: 8px; text-align: left; }
+    td { padding: 8px; border-bottom: 1px solid #2B313A; }
   </style>
 </head>
 <body>
 
-  <h2>1. Simulación</h2>
+  <h2>1. Simulación / Estimación</h2>
   <div class="card">
     <div class="grid-2">
-      <div><label>Inversión ($)</label><input type="number" id="sInv" value="50" oninput="calcSim()"></div>
-      <div><label>P. Compra</label><input type="number" id="sBuy" value="60000" oninput="calcSim()"></div>
+      <div><label>Inversión Estimada ($)</label><input type="number" id="sInv" value="50" oninput="sim()"></div>
+      <div><label>Precio Compra Est.</label><input type="number" id="sBuy" value="60000" oninput="sim()"></div>
     </div>
     <div class="grid-2">
-      <div><label>P. Venta</label><input type="number" id="sSell" value="62000" oninput="calcSim()"></div>
-      <div><label>Ganancia Neta</label><input type="text" id="sProfit" readonly style="color:#0ECB81"></div>
+      <div><label>Precio Venta Est.</label><input type="number" id="sSell" value="62000" oninput="sim()"></div>
+      <div><label>Breakeven Mínimo</label><div id="sBk" style="color:#F0B90B; font-weight:bold; margin-top:8px;">$0.00</div></div>
     </div>
     <div class="grid-2">
-      <div><label>Com. Compra</label><input type="text" id="sFeeBuy" readonly></div>
-      <div><label>Com. Venta</label><input type="text" id="sFeeSell" readonly></div>
+      <div><label>Comis. Compra Est.</label><input type="text" id="sFeeBuy" readonly style="color:#848E9C"></div>
+      <div><label>Comis. Venta Est.</label><input type="text" id="sFeeSell" readonly style="color:#848E9C"></div>
     </div>
+    <div class="val-row"><span>Ganancia Estimada:</span><span id="sProf" class="val green">$0.00</span></div>
+    <div class="val-row"><span>ROI Estimado:</span><span id="sRoi" class="val green">0.00%</span></div>
   </div>
 
-  <h2>2. Registro Real</h2>
+  <h2>2. Registro de Operación Real Definitiva</h2>
   <div class="card">
     <div class="grid-2">
-      <div><label>Inversión ($)</label><input type="number" id="rInv" oninput="calcReal()"></div>
-      <div><label>P. Compra</label><input type="number" id="rBuy" oninput="calcReal()"></div>
+      <div><label>Fecha Operación</label><input type="date" id="rDate"></div>
+      <div><label>Par / Cripto</label><input type="text" id="rPair" placeholder="Ej: BTC/USDT"></div>
     </div>
     <div class="grid-2">
-      <div><label>P. Venta</label><input type="number" id="rSell" oninput="calcReal()"></div>
-      <div><label>Ganancia Neta</label><input type="text" id="rProfit" readonly style="color:#0ECB81"></div>
+      <div><label>Monto Invertido ($)</label><input type="number" id="rInv" oninput="calcReal()"></div>
+      <div><label>Precio Compra Real</label><input type="number" id="rBuy" oninput="calcReal()"></div>
     </div>
     <div class="grid-2">
-      <div><label>Com. Compra</label><input type="text" id="rFeeBuy" readonly></div>
-      <div><label>Com. Venta</label><input type="text" id="rFeeSell" readonly></div>
+      <div><label>Precio Venta Real</label><input type="number" id="rSell" oninput="calcReal()"></div>
+      <div><label>Ganancia Real ($)</label><input type="text" id="rProfit" readonly style="color:#0ECB81; font-weight:bold;"></div>
     </div>
-    <button class="btn-save" onclick="save()">Registrar Operación</button>
+    <div class="grid-2">
+      <div><label>Comisión Compra ($)</label><input type="text" id="rFeeBuy" readonly></div>
+      <div><label>Comisión Venta ($)</label><input type="text" id="rFeeSell" readonly></div>
+    </div>
+    <div class="grid-2">
+      <div><label>Estado</label><select id="rStatus"><option>Cerrada</option><option>Abierta</option></select></div>
+      <div><label>Notas / Estrategia</label><input type="text" id="rNotes" placeholder="Ej: Breakout 4H"></div>
+    </div>
+    <button class="btn-submit" onclick="save()">Registrar en Bitácora Definitiva</button>
   </div>
 
-  <h2>4. Bitácora</h2>
+  <h2>3. Acumulado Mensual Real</h2>
   <div class="card">
+    <div class="val-row"><span>Total Operaciones Registradas:</span><span id="tOps" class="val">0</span></div>
+    <div class="val-row"><span>Resultado Neto Acumulado:</span><span id="tNet" class="val green">$0.00</span></div>
+  </div>
+
+  <h2>4. Bitácora de Operaciones Reales</h2>
+  <div class="card">
+    <button class="btn-excel" onclick="exportToExcel()">📊 Exportar a Excel</button>
     <div class="table-cont">
-      <table>
-        <thead><tr><th>Inv</th><th>P.Compra</th><th>P.Venta</th><th>Com.Buy</th><th>Com.Sell</th><th>Ganancia</th></tr></thead>
+      <table id="tradeTable">
+        <thead>
+          <tr>
+            <th>Fecha</th><th>Par</th><th>Estado</th><th>Inversión</th><th>P. Compra</th><th>P. Venta</th><th>Com. Compra</th><th>Com. Venta</th><th>Ganancia</th><th>Notas</th>
+          </tr>
+        </thead>
         <tbody id="history"></tbody>
       </table>
     </div>
   </div>
 
 <script>
-  // Cálculos de Simulación
-  function calcSim() {
+  document.getElementById('rDate').valueAsDate = new Date();
+
+  function sim() {
     let inv = parseFloat(document.getElementById('sInv').value)||0;
-    let buy = parseFloat(document.getElementById('sBuy').value)||0;
-    let sell = parseFloat(document.getElementById('sSell').value)||0;
-    if(inv > 0 && buy > 0) {
+    let b = parseFloat(document.getElementById('sBuy').value)||0;
+    let s = parseFloat(document.getElementById('sSell').value)||0;
+    if(inv > 0 && b > 0) {
+      let bk = b / ((1-0.001)*(1-0.001));
+      document.getElementById('sBk').innerText = '$' + bk.toFixed(2);
       let fBuy = inv * 0.001;
-      let crypto = (inv - fBuy) / buy;
-      let fSell = (crypto * sell) * 0.001;
-      let profit = (crypto * sell) - fSell - inv;
-      document.getElementById('sFeeBuy').value = fBuy.toFixed(4);
-      document.getElementById('sFeeSell').value = fSell.toFixed(4);
-      document.getElementById('sProfit').value = profit.toFixed(2);
+      let crypto = (inv - fBuy) / b;
+      let fSell = (s > 0) ? (crypto * s) * 0.001 : 0;
+      let net = (s > 0) ? (crypto * s) - fSell - inv : 0;
+      
+      document.getElementById('sFeeBuy').value = '$' + fBuy.toFixed(4);
+      document.getElementById('sFeeSell').value = '$' + fSell.toFixed(4);
+      document.getElementById('sProf').innerText = '$' + net.toFixed(2);
+      document.getElementById('sRoi').innerText = ((net/inv)*100).toFixed(2) + '%';
     }
   }
 
-  // Cálculos de Registro Real
   function calcReal() {
     let inv = parseFloat(document.getElementById('rInv').value)||0;
-    let buy = parseFloat(document.getElementById('rBuy').value)||0;
-    let sell = parseFloat(document.getElementById('rSell').value)||0;
-    if(inv > 0 && buy > 0 && sell > 0) {
+    let b = parseFloat(document.getElementById('rBuy').value)||0;
+    let s = parseFloat(document.getElementById('rSell').value)||0;
+    if(inv > 0 && b > 0) {
       let fBuy = inv * 0.001;
-      let crypto = (inv - fBuy) / buy;
-      let fSell = (crypto * sell) * 0.001;
-      let profit = (crypto * sell) - fSell - inv;
+      let crypto = (inv - fBuy) / b;
+      let fSell = (s > 0) ? (crypto * s) * 0.001 : 0;
+      let profit = (s > 0) ? (crypto * s) - fSell - inv : 0;
+
       document.getElementById('rFeeBuy').value = fBuy.toFixed(4);
       document.getElementById('rFeeSell').value = fSell.toFixed(4);
       document.getElementById('rProfit').value = profit.toFixed(2);
-      document.getElementById('rProfit').className = profit >= 0 ? 'green' : 'red';
     }
   }
 
   function save() {
     let data = JSON.parse(localStorage.getItem('db')||'[]');
     data.unshift({
-      inv: document.getElementById('rInv').value,
-      buy: document.getElementById('rBuy').value,
-      sell: document.getElementById('rSell').value,
-      fb: document.getElementById('rFeeBuy').value,
-      fs: document.getElementById('rFeeSell').value,
-      pro: document.getElementById('rProfit').value
+      date: document.getElementById('rDate').value,
+      pair: document.getElementById('rPair').value || 'N/A',
+      status: document.getElementById('rStatus').value,
+      inv: document.getElementById('rInv').value || '0',
+      buy: document.getElementById('rBuy').value || '0',
+      sell: document.getElementById('rSell').value || '0',
+      fb: document.getElementById('rFeeBuy').value || '0',
+      fs: document.getElementById('rFeeSell').value || '0',
+      profit: document.getElementById('rProfit').value || '0',
+      notes: document.getElementById('rNotes').value || ''
     });
     localStorage.setItem('db', JSON.stringify(data));
     render();
@@ -116,11 +148,40 @@
 
   function render() {
     let data = JSON.parse(localStorage.getItem('db')||'[]');
-    let html = data.map(i => `<tr><td>$${i.inv}</td><td>$${i.buy}</td><td>$${i.sell}</td><td>$${i.fb}</td><td>$${i.fs}</td><td class="${i.pro>=0?'green':'red'}">$${i.pro}</td></tr>`).join('');
+    let html = '';
+    let totalAcc = 0;
+
+    data.forEach(i => {
+      let p = parseFloat(i.profit)||0;
+      totalAcc += p;
+      html += `<tr>
+        <td>${i.date}</td>
+        <td>${i.pair}</td>
+        <td>${i.status}</td>
+        <td>$${i.inv}</td>
+        <td>$${i.buy}</td>
+        <td>$${i.sell}</td>
+        <td>$${i.fb}</td>
+        <td>$${i.fs}</td>
+        <td class="${p>=0?'green':'red'}">$${i.profit}</td>
+        <td>${i.notes}</td>
+      </tr>`;
+    });
+
     document.getElementById('history').innerHTML = html;
+    document.getElementById('tOps').innerText = data.length;
+    let tNet = document.getElementById('tNet');
+    tNet.innerText = '$' + totalAcc.toFixed(2);
+    tNet.className = totalAcc >= 0 ? 'val green' : 'val red';
   }
-  
-  calcSim(); render();
+
+  function exportToExcel() {
+    let table = document.getElementById("tradeTable");
+    let wb = XLSX.utils.table_to_book(table, {sheet: "Bitacora"});
+    XLSX.writeFile(wb, "Bitacora_Trading.xlsx");
+  }
+
+  sim(); render();
 </script>
 </body>
 </html>
