@@ -3,27 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>App Trading Spot</title>
+  <title>Bitácora Trading Spot</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-    body { background-color: #12161C; color: #EAECF0; padding: 12px; }
-    h2 { color: #F0B90B; margin: 14px 0 8px 0; font-size: 1.05rem; text-align: center; border-bottom: 1px solid #2B313A; padding-bottom: 4px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: #12161C; color: #EAECF0; padding: 12px; font-size: 14px; }
+    h2 { color: #F0B90B; margin: 16px 0 10px 0; font-size: 1rem; text-align: center; font-weight: bold; }
     .card { background-color: #1E2329; border-radius: 8px; padding: 12px; margin-bottom: 12px; border: 1px solid #2B313A; }
-    label { font-size: 0.75rem; color: #848E9C; display: block; margin-top: 6px; }
-    input, select { width: 100%; padding: 8px; margin-top: 2px; background-color: #2B313A; border: 1px solid #474D57; border-radius: 4px; color: #fff; font-size: 0.9rem; }
-    .btn { width: 100%; background-color: #F0B90B; color: #000; font-weight: bold; border: none; padding: 10px; border-radius: 4px; font-size: 0.9rem; margin-top: 10px; cursor: pointer; }
-    .btn-exp { background-color: #0ECB81; color: #fff; margin-top: 10px; }
+    label { font-size: 0.75rem; color: #848E9C; display: block; margin-top: 6px; margin-bottom: 2px; }
+    input, select { width: 100%; padding: 8px 10px; background-color: #2B313A; border: 1px solid #474D57; border-radius: 4px; color: #fff; font-size: 0.85rem; outline: none; }
+    input:focus, select:focus { border-color: #F0B90B; }
+    .btn-main { width: 100%; background-color: #F0B90B; color: #000; font-weight: bold; border: none; padding: 12px; border-radius: 4px; font-size: 0.9rem; margin-top: 12px; cursor: pointer; }
+    .btn-exp { width: 100%; background-color: #0ECB81; color: #fff; font-weight: bold; border: none; padding: 10px; border-radius: 4px; font-size: 0.85rem; margin-top: 10px; cursor: pointer; }
     .row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.85rem; }
     .val { font-weight: bold; }
     .green { color: #0ECB81; }
     .red { color: #F6465D; }
     .grid-2 { display: flex; gap: 8px; }
     .grid-2 > div { flex: 1; }
-    .table-container { overflow-x: auto; margin-top: 8px; }
+    .table-container { overflow-x: auto; margin-top: 8px; border-radius: 4px; border: 1px solid #2B313A; }
     table { width: 100%; border-collapse: collapse; font-size: 0.75rem; text-align: left; }
-    th { background-color: #2B313A; color: #F0B90B; padding: 6px; border: 1px solid #474D57; white-space: nowrap; }
-    td { padding: 6px; border: 1px solid #2B313A; white-space: nowrap; }
-    .btn-del { background: #F6465D; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer; }
+    th { background-color: #2B313A; color: #F0B90B; padding: 8px 6px; white-space: nowrap; font-weight: bold; }
+    td { padding: 8px 6px; border-top: 1px solid #2B313A; white-space: nowrap; }
+    .btn-del { background: #F6465D; color: white; border: none; padding: 3px 6px; border-radius: 3px; cursor: pointer; font-size: 0.7rem; }
   </style>
 </head>
 <body>
@@ -36,41 +37,59 @@
     </div>
     <div class="grid-2">
       <div><label>Precio Venta Est.</label><input type="number" id="simSell" value="62000" step="any" oninput="simular()"></div>
-      <div><label>Breakeven Mínimo</label><div id="simBk" style="padding:8px; font-weight:bold; color:#F0B90B;">$0.00</div></div>
+      <div><label>Breakeven Mínimo</label><div id="simBk" style="padding:8px 0; font-weight:bold; color:#F0B90B; font-size:0.9rem;">$60120.1802</div></div>
     </div>
     <hr style="border-color: #2B313A; margin: 8px 0;">
-    <div class="row"><span>Ganancia:</span><span id="simProfit" class="val">-</span></div>
-    <div class="row"><span>ROI:</span><span id="simRoi" class="val">-</span></div>
+    <div class="row"><span>Ganancia Estimada:</span><span id="simProfit" class="val green">$1.56</span></div>
+    <div class="row"><span>ROI Estimado:</span><span id="simRoi" class="val green">3.13%</span></div>
   </div>
 
-  <h2>2. Registro Real</h2>
+  <h2>2. Registro de Operación Real Definitiva</h2>
   <div class="card">
     <div class="grid-2">
-      <div><label>Fecha</label><input type="date" id="realDate"></div>
+      <div><label>Fecha Operación</label><input type="date" id="realDate"></div>
       <div><label>Par / Cripto</label><input type="text" id="realPair" placeholder="Ej: BTC/USDT"></div>
     </div>
     <div class="grid-2">
-      <div><label>Monto Invertido ($)</label><input type="number" id="realInv" step="any"></div>
-      <div><label>P. Compra Real</label><input type="number" id="realBuy" step="any"></div>
+      <div><label>Monto Invertido ($)</label><input type="number" id="realInv" step="any" oninput="calcReal()"></div>
+      <div><label>Precio Compra Real</label><input type="number" id="realBuy" step="any" oninput="calcReal()"></div>
     </div>
     <div class="grid-2">
-      <div><label>P. Venta Real</label><input type="number" id="realSell" step="any"></div>
-      <div><label>Comisión ($)</label><input type="number" id="realFee" step="any" value="0.00"></div>
+      <div><label>Precio Venta Real</label><input type="number" id="realSell" step="any" oninput="calcReal()"></div>
+      <div><label>Comisión Total ($)</label><input type="number" id="realFee" step="any" readonly placeholder="0.00"></div>
     </div>
-    <button class="btn" onclick="guardarOperacionReal()">Registrar en Bitácora</button>
+    <div class="grid-2">
+      <div>
+        <label>Estado</label>
+        <select id="realStatus">
+          <option value="Cerrada">Cerrada</option>
+          <option value="Abierta">Abierta</option>
+        </select>
+      </div>
+      <div><label>Notas / Estrategia</label><input type="text" id="realNotes" placeholder="Ej: Breakout 4H"></div>
+    </div>
+    <button class="btn-main" onclick="guardarOperacionReal()">Registrar en Bitácora Definitiva</button>
   </div>
 
-  <h2>3. Bitácora</h2>
-  <div class="card" style="padding: 4px;">
+  <h2>3. Acumulado Mensual Real</h2>
+  <div class="card">
+    <div class="row"><span>Total Operaciones Registradas:</span><span id="totalOps" class="val">0</span></div>
+    <div class="row"><span>Resultado Neto Acumulado:</span><span id="totalProfit" class="val">$0.00</span></div>
+  </div>
+
+  <h2>4. Bitácora de Operaciones Reales</h2>
+  <div class="card" style="padding: 6px;">
     <div class="table-container">
       <table>
         <thead>
-          <tr><th>Fecha</th><th>Par</th><th>Inversión</th><th>G/P</th><th>Acción</th></tr>
+          <tr>
+            <th>Fecha</th><th>Par</th><th>Estado</th><th>Inversión</th><th>P. Compra</th><th>P. Venta</th><th>Comisión</th><th>G/P Neta</th><th>ROI %</th><th>Notas</th><th>Acción</th>
+          </tr>
         </thead>
         <tbody id="historyTable"></tbody>
       </table>
     </div>
-    <button class="btn btn-exp" onclick="exportToCSV()">Exportar a Excel (CSV)</button>
+    <button class="btn-exp" onclick="exportToCSV()">Exportar a Excel (CSV)</button>
   </div>
 
 <script>
@@ -80,30 +99,81 @@
     const inv = parseFloat(document.getElementById('simInv').value) || 0;
     const buy = parseFloat(document.getElementById('simBuy').value) || 0;
     const sell = parseFloat(document.getElementById('simSell').value) || 0;
+
     if (inv > 0 && buy > 0) {
-      const netCrypto = (inv / buy) * (1 - 0.001);
+      const cryptoBought = (inv / buy) * (1 - 0.001);
       const bk = buy / ((1 - 0.001) * (1 - 0.001));
-      const netSell = (netCrypto * sell) * (1 - 0.001);
-      const p = netSell - inv;
-      const r = (p / inv) * 100;
+      
+      let p = 0;
+      let r = 0;
+
+      if (sell > 0) {
+        const netSell = (cryptoBought * sell) * (1 - 0.001);
+        p = netSell - inv;
+        r = (p / inv) * 100;
+      }
+
       document.getElementById('simBk').innerText = '$' + bk.toFixed(4);
-      document.getElementById('simProfit').innerText = '$' + p.toFixed(2);
+      document.getElementById('simProfit').innerText = sell > 0 ? '$' + p.toFixed(2) : '-';
       document.getElementById('simProfit').className = 'val ' + (p >= 0 ? 'green' : 'red');
-      document.getElementById('simRoi').innerText = r.toFixed(2) + '%';
+      document.getElementById('simRoi').innerText = sell > 0 ? r.toFixed(2) + '%' : '-';
+      document.getElementById('simRoi').className = 'val ' + (p >= 0 ? 'green' : 'red');
+    }
+  }
+
+  function calcReal() {
+    const inv = parseFloat(document.getElementById('realInv').value) || 0;
+    const buy = parseFloat(document.getElementById('realBuy').value) || 0;
+    const sell = parseFloat(document.getElementById('realSell').value) || 0;
+
+    if (inv > 0 && buy > 0 && sell > 0) {
+      const feeCompra = inv * 0.001;
+      const totalSellRaw = (inv / buy) * sell;
+      const feeVenta = totalSellRaw * 0.001;
+      document.getElementById('realFee').value = (feeCompra + feeVenta).toFixed(4);
+    } else if (inv > 0) {
+      document.getElementById('realFee').value = (inv * 0.001).toFixed(4);
+    } else {
+      document.getElementById('realFee').value = '';
     }
   }
 
   function guardarOperacionReal() {
+    const inv = parseFloat(document.getElementById('realInv').value) || 0;
+    const buy = parseFloat(document.getElementById('realBuy').value) || 0;
+    const sell = parseFloat(document.getElementById('realSell').value) || 0;
+    const status = document.getElementById('realStatus').value;
+    
+    if (inv <= 0 || buy <= 0) {
+      alert('Ingresa al menos Inversión y Precio de Compra.');
+      return;
+    }
+
+    let feeTotal = inv * 0.001;
+    let profit = 0;
+    let roi = 0;
+
+    if (sell > 0) {
+      const cryptoBought = (inv / buy) * (1 - 0.001);
+      const netSell = (cryptoBought * sell) * (1 - 0.001);
+      feeTotal = (inv * 0.001) + ((cryptoBought * sell) * 0.001);
+      profit = netSell - inv;
+      roi = (profit / inv) * 100;
+    }
+
     const trades = JSON.parse(localStorage.getItem('real_trades_db') || '[]');
     trades.unshift({
       id: Date.now(),
       date: document.getElementById('realDate').value,
       pair: document.getElementById('realPair').value || '-',
-      inv: document.getElementById('realInv').value || 0,
-      buy: document.getElementById('realBuy').value || 0,
-      sell: document.getElementById('realSell').value || 0,
-      fee: document.getElementById('realFee').value || 0,
-      profit: (( (parseFloat(document.getElementById('realInv').value)/parseFloat(document.getElementById('realBuy').value) * (1 - 0.001) * parseFloat(document.getElementById('realSell').value) * (1 - 0.001)) - parseFloat(document.getElementById('realInv').value) ) - parseFloat(document.getElementById('realFee').value)).toFixed(2)
+      status: status,
+      inv: inv.toFixed(2),
+      buy: buy.toFixed(4),
+      sell: sell > 0 ? sell.toFixed(4) : '-',
+      fee: feeTotal.toFixed(4),
+      profit: sell > 0 ? profit.toFixed(2) : '0.00',
+      roi: sell > 0 ? roi.toFixed(2) : '0.00',
+      notes: document.getElementById('realNotes').value || '-'
     });
     localStorage.setItem('real_trades_db', JSON.stringify(trades));
     renderHistory();
@@ -119,21 +189,40 @@
   function renderHistory() {
     const trades = JSON.parse(localStorage.getItem('real_trades_db') || '[]');
     const tbody = document.getElementById('historyTable');
-    tbody.innerHTML = trades.map(t => `
-      <tr>
-        <td>${t.date}</td><td>${t.pair}</td><td>$${t.inv}</td>
-        <td class="${t.profit >= 0 ? 'green' : 'red'}">$${t.profit}</td>
-        <td><button class="btn-del" onclick="deleteTrade(${t.id})">X</button></td>
-      </tr>
-    `).join('');
+    
+    let totalAcc = 0;
+    
+    tbody.innerHTML = trades.map(t => {
+      const pNum = parseFloat(t.profit) || 0;
+      totalAcc += pNum;
+      return `
+        <tr>
+          <td>${t.date}</td>
+          <td>${t.pair}</td>
+          <td>${t.status}</td>
+          <td>$${t.inv}</td>
+          <td>$${t.buy}</td>
+          <td>$${t.sell}</td>
+          <td>$${t.fee}</td>
+          <td class="${pNum >= 0 ? 'green' : 'red'}">$${t.profit}</td>
+          <td class="${pNum >= 0 ? 'green' : 'red'}">${t.roi}%</td>
+          <td>${t.notes}</td>
+          <td><button class="btn-del" onclick="deleteTrade(${t.id})">X</button></td>
+        </tr>
+      `;
+    }).join('');
+
+    document.getElementById('totalOps').innerText = trades.length;
+    document.getElementById('totalProfit').innerText = '$' + totalAcc.toFixed(2);
+    document.getElementById('totalProfit').className = 'val ' + (totalAcc >= 0 ? 'green' : 'red');
   }
 
   function exportToCSV() {
     const trades = JSON.parse(localStorage.getItem('real_trades_db') || '[]');
-    if (trades.length === 0) { alert('No hay datos'); return; }
-    let csv = "Fecha,Par,Inversión,Compra,Venta,Comisión,Ganancia\n";
+    if (trades.length === 0) { alert('No hay datos guardados para exportar'); return; }
+    let csv = "Fecha,Par,Estado,Inversion,P. Compra,P. Venta,Comision,G/P Neta,ROI %,Notas\n";
     trades.forEach(t => {
-      csv += `${t.date},${t.pair},${t.inv},${t.buy},${t.sell},${t.fee},${t.profit}\n`;
+      csv += `${t.date},${t.pair},${t.status},${t.inv},${t.buy},${t.sell},${t.fee},${t.profit},${t.roi},"${t.notes}"\n`;
     });
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -147,3 +236,4 @@
 </script>
 </body>
 </html>
+
